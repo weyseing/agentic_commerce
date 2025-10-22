@@ -1,0 +1,17 @@
+services:
+  agentic_commerce:
+    container_name: agentic_commerce
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "4444:4444"
+      - "8080:8080"
+    networks:
+      global-net:
+
+networks:
+  global-net:
+    external: true
