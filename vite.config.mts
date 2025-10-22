@@ -7,7 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // input files
 function buildInputs() {
-  const files = fg.sync("src/**/index.{tsx,jsx}", { dot: false });
+  const files = fg.sync("src_ui/**/index.{tsx,jsx}", { dot: false });
   return Object.fromEntries(
     files.map((f) => [path.basename(path.dirname(f)), path.resolve(f)])
   );
@@ -32,7 +32,7 @@ function multiEntryDevEndpoints(options: {
 }): Plugin {
   const {
     entries,
-    globalCss = ["src/index.css"],
+    globalCss = ["src_ui/index.css"],
     perEntryCssGlob = "**/*.{css,pcss,scss,sass}",
     perEntryCssIgnore = ["**/*.module.*"],
   } = options;
@@ -178,7 +178,7 @@ function multiEntryDevEndpoints(options: {
       if (kind === "style") {
         const allCss = [...globals, ...perEntry];
         const lines = [
-          `@source "./src";`,
+          `@source "./src_ui";`,
           ...allCss.map((p) => `@import "${toServerRoot(p)}";`),
         ];
         return lines.join("\n");
