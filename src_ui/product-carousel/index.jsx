@@ -8,7 +8,7 @@ import { useOpenAiGlobal } from "../use-openai-global.js";
 const MOCK_PRODUCTS = [
   {
     id: 1,
-    name: "Wireless Noise-Cancelling Headphones",
+    name: "Wireless Noise-Cancelling Headphone",
     price: 299.99,
     originalPrice: 399.99,
     rating: 4.8,
@@ -82,16 +82,16 @@ function getMCPToolOutput() {
 }
 
 function App() {
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const scrollContainerRef = React.useRef(null);
-  const canScrollLeft = currentIndex > 0;
-  const canScrollRight = currentIndex < MOCK_PRODUCTS.length - 1;
-
   // Get MCP tool output
   const MCPToolOutput = getMCPToolOutput();
   
-  // Get products from MCP output, fallback to mock data
-  const products = MCPToolOutput?.products || MOCK_PRODUCTS;
+  // Get products from MCP output
+  const products = MCPToolOutput?.products?.items || MOCK_PRODUCTS;
+
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const scrollContainerRef = React.useRef(null);
+  const canScrollLeft = currentIndex > 0;
+  const canScrollRight = currentIndex < products.length - 1;
 
   // scroll handler
   const scroll = (direction) => {
@@ -103,12 +103,12 @@ function App() {
     setCurrentIndex(prev => 
       direction === 'left' 
         ? Math.max(0, prev - 1) 
-        : Math.min(MOCK_PRODUCTS.length - 1, prev + 1)
+        : Math.min(products.length - 1, prev + 1)
     );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 py-16 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 py-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Carousel Container */}
         <div className="relative">
@@ -118,7 +118,7 @@ function App() {
             className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth px-4 pb-6"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {MOCK_PRODUCTS.map((product) => (
+            {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
@@ -155,8 +155,8 @@ function App() {
         </div>
 
         {/* Dots Indicator */}
-        <div className="flex justify-center gap-2 mt-10">
-          {MOCK_PRODUCTS.map((_, index) => (
+        <div className="flex justify-center gap-2 mt-6">
+          {products.map((_, index) => (
             <button
               key={index}
               onClick={() => {

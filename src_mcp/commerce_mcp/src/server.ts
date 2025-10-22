@@ -26,7 +26,7 @@ import axios from "axios";
 const APP_VERSION = "1.3";
 
 // types
-type PizzazWidget = {
+type CommerceWidget = {
   id: string;
   title: string;
   templateUri: string;
@@ -43,14 +43,13 @@ type PhotoMetadata = {
 
 // paths
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT_DIR = path.resolve(__dirname, "..", "..");
+const ROOT_DIR = path.resolve(__dirname, "..", "..", "..");
 const ASSETS_DIR = path.resolve(ROOT_DIR, "assets");
 
 // read widget HTML
 function readWidgetHtml(componentName: string): string {
   const directPath = path.join(ASSETS_DIR, `${componentName}.html`);
   let htmlContents: string | null = null;
-
   if (fs.existsSync(directPath)) {
     htmlContents = fs.readFileSync(directPath, "utf8");
   } else {
@@ -64,14 +63,13 @@ function readWidgetHtml(componentName: string): string {
     if (fallback)
       htmlContents = fs.readFileSync(path.join(ASSETS_DIR, fallback), "utf8");
   }
-
   if (!htmlContents)
     throw new Error(`Widget HTML for "${componentName}" not found in ${ASSETS_DIR}. Run "pnpm run build" to generate the assets.`);
   return htmlContents;
 }
 
 // widget metadata
-function widgetMeta(widget: PizzazWidget) {
+function widgetMeta(widget: CommerceWidget) {
   return {
     "openai/outputTemplate": widget.templateUri,
     "openai/toolInvocation/invoking": widget.invoking,
@@ -82,48 +80,21 @@ function widgetMeta(widget: PizzazWidget) {
 }
 
 // widget
-const widgets: PizzazWidget[] = [
+const widgets: CommerceWidget[] = [
   {
-    id: "pizza-map",
-    title: "Show Pizza Map",
-    templateUri: "ui://widget/pizza-map.html",
-    invoking: "Hand-tossing a map",
-    invoked: "Served a fresh map",
-    html: readWidgetHtml("pizzaz"),
-    responseText: "Rendered a pizza map!",
-  },
-  {
-    id: "pizza-carousel",
-    title: "Show Pizza Carousel",
-    templateUri: "ui://widget/pizza-carousel.html",
-    invoking: "Carousel some spots",
-    invoked: "Served a fresh carousel",
-    html: readWidgetHtml("pizzaz-carousel"),
-    responseText: "Rendered a pizza carousel!",
-  },
-  {
-    id: "pizza-albums",
-    title: "Show Pizza Album",
-    templateUri: "ui://widget/pizza-albums.html",
-    invoking: "Hand-tossing an album",
-    invoked: "Served a fresh album",
-    html: readWidgetHtml("pizzaz-albums"),
-    responseText: "Rendered a pizza album!",
-  },
-  {
-    id: "pizza-list",
-    title: "Show Pizza List",
-    templateUri: "ui://widget/pizza-list.html",
-    invoking: "Hand-tossing a list",
-    invoked: "Served a fresh list",
-    html: readWidgetHtml("pizzaz-list"),
-    responseText: "Rendered a pizza list!",
-  },
+    id: "product-carousel",
+    title: "Show Product Carousel",
+    templateUri: "ui://widget/product-carousel.html",
+    invoking: "Curating products",
+    invoked: "Products ready to browse",
+    html: readWidgetHtml("product-carousel"),
+    responseText: "Displaying personalized product recommendations!",
+  }
 ];
 
 // widgets by id & uri
-const widgetsById = new Map<string, PizzazWidget>();
-const widgetsByUri = new Map<string, PizzazWidget>();
+const widgetsById = new Map<string, CommerceWidget>();
+const widgetsByUri = new Map<string, CommerceWidget>();
 widgets.forEach((widget) => {
   widgetsById.set(widget.id, widget);
   widgetsByUri.set(widget.templateUri, widget);
@@ -151,18 +122,47 @@ const resourceTemplates: ResourceTemplate[] = widgets.map((widget) => ({
 const toolInputSchema = {
   type: "object",
   properties: {
-    pizzaTopping: {
+    query: {
       type: "string",
-      description: "Topping to mention when rendering the widget."
+      description: "User's search query or product preferences (e.g., 'wireless headphones', 'running shoes under $150')"
+    },
+    category: {
+      type: "string",
+      description: "Product category to filter by (e.g., 'Electronics', 'Footwear', 'Accessories')",
+      enum: ["Electronics", "Wearables", "Accessories", "Footwear", "Lifestyle", "Gaming", "All"]
+    },
+    priceRange: {
+      type: "object",
+      properties: {
+        min: {
+          type: "number",
+          description: "Minimum price in USD"
+        },
+        max: {
+          type: "number",
+          description: "Maximum price in USD"
+        }
+      }
+    },
+    sortBy: {
+      type: "string",
+      description: "How to sort products",
+      enum: ["price-low", "price-high", "rating", "popular", "newest"]
     }
   },
-  required: ["pizzaTopping"],
+  required: ["query"],
   additionalProperties: false
 } as const;
 
 // input parser
 const toolInputParser = z.object({
-  pizzaTopping: z.string()
+  query: z.string(),
+  category: z.enum(["Electronics", "Wearables", "Accessories", "Footwear", "Lifestyle", "Gaming", "All"]).optional(),
+  priceRange: z.object({
+    min: z.number().optional(),
+    max: z.number().optional()
+  }).optional(),
+  sortBy: z.enum(["price-low", "price-high", "rating", "popular", "newest"]).optional()
 });
 
 // MCP tools
@@ -182,52 +182,103 @@ const tools: Tool[] = widgets.map((widget) => ({
 
 // mcp tool handlers
 const toolHandlers: Record<string, (args: any) => Promise<any>> = {
-  "pizza-map": async (args) => {
-    const response = await fetchRandomUser();
-    const randomUser =  response.name;
+  "product-carousel": async (args) => {
+    // simulate API call delay
+    await fetchRandomPhoto(); // Keep this to simulate async operation
+    
+    // return mock product data
     return {
       appVersion: APP_VERSION,
-      pizzaTopping: args.pizzaTopping,
-      user: randomUser,
-    };
-  },
-  "pizza-carousel": async (args) => {
-    const photoDetails = await fetchRandomPhoto();
-    return {
-      appVersion: APP_VERSION,
-      pizzaTopping: args.pizzaTopping,
-      image: {
-        url: photoDetails,
-        _displayOnly: true
+      query: args.query,
+      category: args.category || "All",
+      _instruction: "Products are displayed in the widget below. Do not list them in your response.",
+      products: {
+        items: [
+          {
+            id: 1,
+            name: "Wireless Noise-Cancelling Headphones",
+            price: 299.99,
+            originalPrice: 399.99,
+            rating: 4.8,
+            reviews: 2847,
+            thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=400&fit=crop",
+            category: "Electronics",
+            inStock: true,
+            badge: "Best Seller"
+          },
+          {
+            id: 2,
+            name: "Smart Watch Series 9",
+            price: 449.00,
+            rating: 4.9,
+            reviews: 5234,
+            thumbnail: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop",
+            category: "Wearables",
+            inStock: true,
+            badge: "New Arrival"
+          },
+          {
+            id: 3,
+            name: "Premium Leather Backpack",
+            price: 179.99,
+            originalPrice: 229.99,
+            rating: 4.7,
+            reviews: 1092,
+            thumbnail: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop",
+            category: "Accessories",
+            inStock: true,
+            badge: "Sale"
+          },
+          {
+            id: 4,
+            name: "Minimalist Running Shoes",
+            price: 129.99,
+            rating: 4.6,
+            reviews: 3421,
+            thumbnail: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
+            category: "Footwear",
+            inStock: true
+          },
+          {
+            id: 5,
+            name: "Stainless Steel Water Bottle",
+            price: 34.99,
+            originalPrice: 49.99,
+            rating: 4.9,
+            reviews: 8762,
+            thumbnail: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400&h=400&fit=crop",
+            category: "Lifestyle",
+            inStock: true,
+            badge: "Eco-Friendly"
+          },
+          {
+            id: 6,
+            name: "Mechanical Keyboard RGB",
+            price: 189.99,
+            rating: 4.8,
+            reviews: 4156,
+            thumbnail: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=400&h=400&fit=crop",
+            category: "Gaming",
+            inStock: false
+          }
+        ],
+        _displayOnly: true 
       },
-    };
-  },
-  "pizza-albums": async (args) => {
-    const response = await fetchRandomUser();
-    const randomUser =  response.name;
-    return {
-      appVersion: APP_VERSION,
-      pizzaTopping: args.pizzaTopping,
-      user: randomUser,
-    };
-  },
-  "pizza-list": async (args) => {
-    const response = await fetchRandomUser();
-    const randomUser =  response.name;
-    return {
-      appVersion: APP_VERSION,
-      pizzaTopping: args.pizzaTopping,
-      user: randomUser,
+      _meta: {
+        totalProducts: 6,
+        filteredBy: args.category || "All",
+        sortedBy: args.sortBy || "default"
+      }
     };
   },
 };
 
 // create MCP server
-function createPizzazServer(): Server {
+function createMCPServer(): Server {
   // init server
   const server = new Server(
     {
-      name: "pizzaz-node",
+      name: "mcp-server-node",
       version: "0.1.0"
     },
     {
@@ -314,7 +365,7 @@ const postPath = "/mcp/messages";
 // handle SSE request
 async function handleSseRequest(res: ServerResponse) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  const server = createPizzazServer();
+  const server = createMCPServer();
   const transport = new SSEServerTransport(postPath, res);
   const sessionId = transport.sessionId;
 
@@ -325,7 +376,7 @@ async function handleSseRequest(res: ServerResponse) {
     await server.close();
   };
 
-  transport.onerror = (error) => {
+  transport.onerror = (error: Error) => {
     console.error("SSE transport error", error);
   };
 
@@ -421,17 +472,6 @@ httpServer.listen(port, host, () => {
   console.log(`  SSE stream: GET http://${host}:${port}${ssePath}`);
   console.log(`  Message post endpoint: POST http://${host}:${port}${postPath}?sessionId=...`);
 });
-
-// fetch random user
-async function fetchRandomUser() {
-  try {
-    const response = await axios.get('https://randomuser.me/api/');
-    return response.data.results[0];
-  } catch (error) {
-    console.error('Error fetching random user:', error);
-    return null;
-  }
-}
 
 // fetch random photo
 async function fetchRandomPhoto() {
