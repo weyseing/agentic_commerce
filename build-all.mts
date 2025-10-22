@@ -10,8 +10,7 @@ import pkg from "./package.json" with { type: "json" };
 import tailwindcss from "@tailwindcss/vite";
 
 // src folder
-// const entries = fg.sync("src/**/index.{tsx,jsx}");
-const entries = fg.sync("src/pizzaz-carousel/index.{tsx,jsx}");
+const entries = fg.sync("src/**/index.{tsx,jsx}");
 
 // output folder
 const outDir = "assets";
@@ -23,13 +22,7 @@ const GLOBAL_CSS_LIST = [path.resolve("src/index.css")];
 
 // target to build
 const targets: string[] = [
-  "todo",
-  "solar-system",
-  "pizzaz",
-  "pizzaz-carousel",
-  "pizzaz-list",
-  "pizzaz-albums",
-  "pizzaz-video",
+  "product-carousel",
 ];
 const builtNames: string[] = [];
 

@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client";
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import product from "./product.json";
-import PlaceCard from "./ProductCard";
+import ProductCard from "./ProductCard.jsx";
 import { useOpenAiGlobal } from "../use-openai-global";
 
 // get mcp tool output
@@ -20,7 +20,7 @@ function App() {
   const MCPToolOutput = getMCPToolOutput();
 
   // product data
-  const initialProduct = product?.name || [];
+  const initialProduct = product.products.map(product => product.name) || [];
   
   // replace image urls
   const imageURLs = MCPToolOutput?.image?.url || [];
@@ -53,13 +53,12 @@ function App() {
       emblaApi.off("reInit", updateButtons);
     };
   }, [emblaApi]);
-
   return (
     <div className="antialiased relative w-full text-black py-5 bg-white">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex gap-4 max-sm:mx-5 items-stretch">
           {products.map((product) => (
-            <PlaceCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </div>

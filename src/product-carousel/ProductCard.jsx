@@ -3,7 +3,8 @@
 import React from "react";
 import { Star } from "lucide-react";
 
-export default function productCard({ product }) {
+export default function ProductCard({ product }) {
+  console.log("Rendering ProductCard for product:", product);
   if (!product) return null;
   return (
     <div className="min-w-[220px] select-none max-w-[220px] w-[65vw] sm:w-[220px] self-stretch flex flex-col">
