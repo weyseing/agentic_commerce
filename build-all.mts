@@ -23,6 +23,8 @@ const GLOBAL_CSS_LIST = [path.resolve("src_ui/index.css")];
 // target to build
 const targets: string[] = [
   "product-carousel",
+  "checkout-page",
+  "shopping-cart"
 ];
 const builtNames: string[] = [];
 

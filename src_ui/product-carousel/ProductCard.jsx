@@ -15,8 +15,8 @@ export default function ProductCard({ product }) {
     : 0;
 
   return (
-    <div className="min-w-[280px] max-w-[280px] w-[75vw] sm:w-[280px] select-none">
-      <div className="bg-white rounded-3xl overflow-hidden h-full flex flex-col border border-slate-200/60 hover:border-slate-300/60 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/50 group">
+    <div className="min-w-[280px] max-w-[280px] flex-shrink-0 select-none">
+      <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-auto">
         {/* Image Container */}
         <div className="relative overflow-hidden">
           <img

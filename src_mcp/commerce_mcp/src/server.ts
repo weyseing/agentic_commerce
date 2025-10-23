@@ -79,7 +79,7 @@ function widgetMeta(widget: CommerceWidget) {
   } as const;
 }
 
-// widget
+// widget [UPDATE POINT]
 const widgets: CommerceWidget[] = [
   {
     id: "product-carousel",
@@ -89,6 +89,24 @@ const widgets: CommerceWidget[] = [
     invoked: "Products ready to browse",
     html: readWidgetHtml("product-carousel"),
     responseText: "Displaying personalized product recommendations!",
+  },
+  {
+    id: "checkout-page",
+    title: "Show Checkout Page",
+    templateUri: "ui://widget/checkout-page.html",
+    invoking: "Preparing checkout",
+    invoked: "Checkout ready",
+    html: readWidgetHtml("checkout-page"),
+    responseText: "Taking you to checkout to complete your purchase!",
+  },
+  {
+    id: "shopping-cart",
+    title: "Show Shopping Cart",
+    templateUri: "ui://widget/shopping-cart.html",
+    invoking: "Loading cart",
+    invoked: "Cart loaded",
+    html: readWidgetHtml("shopping-cart"),
+    responseText: "Here's your shopping cart with all your items!",
   }
 ];
 
@@ -180,7 +198,7 @@ const tools: Tool[] = widgets.map((widget) => ({
   },
 }));
 
-// mcp tool handlers
+// mcp tool handlers [UPDATE POINT]
 const toolHandlers: Record<string, (args: any) => Promise<any>> = {
   "product-carousel": async (args) => {
     // simulate API call delay
@@ -271,6 +289,99 @@ const toolHandlers: Record<string, (args: any) => Promise<any>> = {
       }
     };
   },
+
+"shopping-cart": async (args) => {
+    // simulate API call delay
+    await fetchRandomPhoto();
+    
+    return {
+      appVersion: APP_VERSION,
+      _instruction: "Shopping cart is displayed in the widget below. Do not list items in your response.",
+      cart: {
+        items: [
+          {
+            id: 1,
+            name: "Wireless Noise-Cancelling Headphone",
+            price: 299.99,
+            originalPrice: 399.99,
+            quantity: 1,
+            thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop",
+            category: "Electronics",
+            inStock: true
+          },
+          {
+            id: 2,
+            name: "Smart Watch Series 9",
+            price: 449.00,
+            quantity: 1,
+            thumbnail: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop",
+            category: "Wearables",
+            inStock: true
+          },
+          {
+            id: 3,
+            name: "Premium Leather Backpack",
+            price: 179.99,
+            originalPrice: 229.99,
+            quantity: 2,
+            thumbnail: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop",
+            category: "Accessories",
+            inStock: true
+          }
+        ],
+        _displayOnly: true
+      },
+      _meta: {
+        totalItems: 4,
+        subtotal: 1108.97,
+        tax: 99.81,
+        shipping: 0,
+        total: 1208.78
+      }
+    };
+  },
+  "checkout-page": async (args) => {
+    // simulate API call delay
+    await fetchRandomPhoto();
+    
+    return {
+      appVersion: APP_VERSION,
+      _instruction: "Checkout page is displayed in the widget below. Do not describe the checkout process in your response.",
+      checkout: {
+        items: [
+          {
+            id: 1,
+            name: "Wireless Noise-Cancelling Headphone",
+            price: 299.99,
+            quantity: 1,
+            thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop"
+          },
+          {
+            id: 2,
+            name: "Smart Watch Series 9",
+            price: 449.00,
+            quantity: 1,
+            thumbnail: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop"
+          },
+          {
+            id: 5,
+            name: "Stainless Steel Water Bottle",
+            price: 34.99,
+            quantity: 2,
+            thumbnail: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop"
+          }
+        ],
+        _displayOnly: true
+      },
+      _meta: {
+        subtotal: 818.97,
+        tax: 73.71,
+        shipping: 0,
+        total: 892.68,
+        step: args.step || 1
+      }
+    };
+  }
 };
 
 // create MCP server
